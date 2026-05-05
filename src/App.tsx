@@ -86,7 +86,7 @@ deadline: '',
 referenceUrl: ''
 });
 
-const currentClient = INITIAL_CLIENTS.find(c => c.id === activeClientId);
+const currentClient = INITIAL_CLIENTS.find(c => c.id === activeClientId) || INITIAL_CLIENTS[0];
 
 useEffect(() => {
 const params = new URLSearchParams(window.location.search);
@@ -149,6 +149,7 @@ createdAt: editingId ? (existing?.createdAt || new Date().toISOString()) : new D
 }, { merge: true });
 setIsModalOpen(false);
 setEditingId(null);
+setFormState({ title: '', description: '', format: 'Social Media', priority: 'Normal', deadline: '', referenceUrl: '' });
 } catch (err) {
 console.error(err);
 }
@@ -183,13 +184,14 @@ if (isLoading) {
 return (
 
 
-A carregar TaskHub...
+Sincronizando Aoki TaskHub...
 
 );
 }
 
 return (
 
+{/* Sidebar */}
 
 
 
@@ -203,7 +205,7 @@ TaskHub
         <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest flex items-center gap-2">
           <CheckCircle2 size={12} /> Portal do Cliente
         </p>
-        <p className="text-[11px] text-emerald-700 font-medium mt-1 leading-tight">Envie os seus pedidos de artes e materiais aqui.</p>
+        <p className="text-[11px] text-emerald-700 font-medium mt-1 leading-tight">Olá! Peça aqui as suas artes e acompanhe a produção.</p>
       </div>
     )}
 
@@ -230,7 +232,7 @@ TaskHub
           { id: 'todos', label: 'Todos os Pedidos', icon: <LayoutGrid size={18} /> },
           { id: 'Pendente', label: 'Pendentes', icon: <Clock size={18} className="text-amber-500" /> },
           { id: 'Em Produção', label: 'Em Produção', icon: <Zap size={18} className="text-blue-500" /> },
-          { id: 'Concluído', label: 'Concluídos', icon: <CheckCircle2 size={18} className="text-emerald-500" /> }
+          { id: 'Concluído', label: 'Finalizados', icon: <CheckCircle2 size={18} className="text-emerald-500" /> }
         ].map(t => (
           <button
             key={t.id}
@@ -248,7 +250,7 @@ TaskHub
     <div className="mt-auto space-y-3">
       {!isClientView && (
         <button onClick={copyClientLink} className="w-full bg-slate-100 text-slate-600 py-3.5 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-slate-200 transition-all text-xs border border-slate-200">
-          <Share size={16} /> Link Cliente
+          <Share size={16} /> Link p/ Cliente
         </button>
       )}
       <button
@@ -271,7 +273,7 @@ TaskHub
           <div className={`w-3 h-3 rounded-full bg-gradient-to-tr ${currentClient?.color} shadow-sm`} />
           <h2 className="text-3xl font-black text-slate-900 tracking-tight">{currentClient?.name}</h2>
         </div>
-        <p className="text-slate-400 text-sm font-medium italic">Gestão de solicitações Aoki</p>
+        <p className="text-slate-400 text-sm font-medium italic uppercase tracking-widest text-[10px]">Portal de Gestão Aoki</p>
       </div>
       <div className="bg-white border border-slate-200 px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-2 shadow-sm">
         <Globe size={12} className="text-indigo-500" /> Ativos: {filteredRequests.length}
@@ -281,7 +283,7 @@ TaskHub
     {showCopyMessage && (
       <div className="mb-6 bg-emerald-500 text-white px-6 py-4 rounded-3xl flex items-center gap-3 animate-in slide-in-from-top duration-300 shadow-lg">
         <CheckCircle2 size={20} />
-        <span className="font-bold text-sm">Link copiado com sucesso!</span>
+        <span className="font-bold text-sm">Link do portal do cliente copiado!</span>
       </div>
     )}
 
@@ -289,7 +291,7 @@ TaskHub
       {filteredRequests.length === 0 ? (
         <div className="bg-white border-2 border-dashed border-slate-200 rounded-[3rem] p-20 text-center flex flex-col items-center">
           <ClipboardList className="text-slate-100 w-20 h-20 mb-4" />
-          <p className="text-slate-300 font-bold uppercase text-[10px] tracking-widest">Sem pedidos registados</p>
+          <p className="text-slate-300 font-bold uppercase text-[10px] tracking-widest">Nenhum pedido registado aqui</p>
         </div>
       ) : (
         filteredRequests.map(request => (
@@ -324,13 +326,13 @@ TaskHub
                 {!isClientView ? (
                   <>
                     <button onClick={() => updateStatus(request.id, request.status === 'Pendente' ? 'Em Produção' : request.status === 'Em Produção' ? 'Concluído' : 'Em Produção')} className="bg-slate-900 text-white px-6 py-2.5 rounded-xl text-[10px] font-black uppercase hover:bg-black transition-all shadow-md active:scale-95">
-                      {request.status === 'Pendente' ? 'Iniciar' : request.status === 'Em Produção' ? 'Concluir' : 'Reabrir'}
+                      {request.status === 'Pendente' ? 'Iniciar' : request.status === 'Em Produção' ? 'Finalizar' : 'Reabrir'}
                     </button>
                     <button onClick={() => { setEditingId(request.id); setFormState({...request}); setIsModalOpen(true); }} className="p-3 bg-slate-50 text-slate-500 rounded-xl hover:bg-indigo-50 border border-slate-100 transition-all"><Edit3 size={18} /></button>
                     <button onClick={() => deleteRequest(request.id)} className="p-3 bg-slate-50 text-slate-300 rounded-xl hover:text-rose-600 border border-slate-100 transition-all"><Trash2 size={18} /></button>
                   </>
                 ) : (
-                  request.status === 'Pendente' && <button onClick={() => deleteRequest(request.id)} className="text-slate-400 text-[10px] font-black uppercase hover:text-rose-500 transition-all underline underline-offset-8">Cancelar Pedido</button>
+                  request.status === 'Pendente' && <button onClick={() => deleteRequest(request.id)} className="text-slate-400 text-[10px] font-black uppercase hover:text-rose-500 transition-all underline underline-offset-8 decoration-2">Cancelar Pedido</button>
                 )}
                 {request.referenceUrl && (
                   <a href={request.referenceUrl.startsWith('http') ? request.referenceUrl : `https://${request.referenceUrl}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-5 py-2.5 bg-indigo-50 text-indigo-600 rounded-xl text-[10px] font-black uppercase hover:bg-indigo-100 border border-indigo-100 shadow-sm">
@@ -393,7 +395,7 @@ TaskHub
                 <input type="date" className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-black outline-none focus:border-indigo-500 cursor-pointer shadow-inner" value={formState.deadline} onChange={(e) => setFormState({...formState, deadline: e.target.value})} />
               </div>
               <div>
-                <label className="block text-[10px] font-black text-slate-400 uppercase mb-3 tracking-widest">Instruções</label>
+                <label className="block text-[10px] font-black text-slate-400 uppercase mb-3 tracking-widest">Instruções Adicionais</label>
                 <textarea required rows={4} placeholder="Cores, textos, objetivo..." className="w-full p-5 bg-slate-50 border border-slate-200 rounded-[2rem] text-sm font-medium outline-none focus:ring-4 focus:ring-indigo-50 focus:border-indigo-500 transition-all resize-none leading-relaxed shadow-inner" value={formState.description} onChange={(e) => setFormState({...formState, description: e.target.value})}></textarea>
               </div>
             </div>
