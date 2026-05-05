@@ -22,7 +22,6 @@ import {
 } from 'lucide-react';
 
 // --- CONFIGURAÇÃO DO FIREBASE ---
-// Aviso: Em produção, coloque essas chaves em um arquivo .env
 const firebaseConfig = {
   apiKey: "AIzaSyARH2lOjbz9fQsOVJ25y-IQdzuMnfbfpRE",
   authDomain: "aoki-7a6ec.firebaseapp.com",
@@ -132,3 +131,71 @@ export default function App() {
     const statusMatch = activeTab === 'todos' || r.status === activeTab;
     return clientMatch && statusMatch;
   });
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formState.title.trim()) return;
+    try {
+      const id = editingId || Date.now().toString();
+      const requestRef = doc(db, 'agencias', 'aoki', 'pedidos', id);
+      const existing = requests.find(r => r.id === editingId);
+      await setDoc(requestRef, {
+        ...formState,
+        clientId: activeClientId === 'geral' ? 'c1' : activeClientId,
+        status: editingId ? (existing?.status || 'Pendente') : 'Pendente',
+        createdAt: editingId ? (existing?.createdAt || new Date().toISOString()) : new Date().toISOString(),
+      }, { merge: true });
+      
+      setIsModalOpen(false);
+      setEditingId(null);
+      setFormState({ title: '', description: '', format: 'Social Media', priority: 'Normal', deadline: '', referenceUrl: '' });
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const updateStatus = async (id: string, newStatus: string) => {
+    try {
+      await setDoc(doc(db, 'agencias', 'aoki', 'pedidos', id), { status: newStatus }, { merge: true });
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const deleteRequest = async (id: string) => {
+    try {
+      if (window.confirm("Deseja apagar este pedido permanentemente?")) {
+        await deleteDoc(doc(db, 'agencias', 'aoki', 'pedidos', id));
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const copyClientLink = () => {
+    const url = new URL(window.location.href);
+    url.searchParams.set('view', 'client');
+    const el = document.createElement("textarea");
+    el.value = url.toString();
+    document.body.appendChild(el);
+    el.select();
+    document.execCommand('copy');
+    document.body.removeChild(el);
+    setShowCopyMessage(true);
+    setTimeout(() => setShowCopyMessage(false), 3000);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-slate-50 text-slate-500 font-bold">
+        <Loader2 className="animate-spin mr-2" />
+        Sincronizando Aoki TaskHub...
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex h-screen w-full bg-slate-50 font-sans text-slate-900 overflow-hidden">
+      {/* Sidebar */}
+      <aside className="w-full md:w-80 bg-white border-r border-slate-200 p-6 flex flex-col h-full overflow-y-auto shadow-sm z-10">
+        <div className
