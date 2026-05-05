@@ -1,8 +1,3 @@
-Este ficheiro serve para copiar o código caso a janela lateral não apareça.
-Cole o conteúdo abaixo no seu ficheiro 'src/App.tsx'.
-
---- INÍCIO DO CÓDIGO ---
-
 import React, { useState, useEffect } from 'react';
 import { initializeApp } from 'firebase/app';
 import { getAuth, signInAnonymously, onAuthStateChanged, User } from 'firebase/auth';
@@ -28,6 +23,7 @@ XCircle,
 AlertCircle
 } from 'lucide-react';
 
+// --- CONFIGURAÇÃO DO FIREBASE ---
 const firebaseConfig = {
 apiKey: "AIzaSyARH2lOjbz9fQsOVJ25y-IQdzuMnfbfpRE",
 authDomain: "aoki-7a6ec.firebaseapp.com",
@@ -41,6 +37,7 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
+// --- TIPAGENS ---
 interface RequestItem {
 id: string;
 clientId: string;
@@ -101,7 +98,9 @@ if (activeClientId === 'geral') setActiveClientId('c1');
 
 useEffect(() => {
 if (currentClient) {
-document.title = isClientView ? Portal: ${currentClient.name} : TaskHub | Gestão Aoki;
+document.title = isClientView
+? Portal: ${currentClient.name}
+: TaskHub | Gestão Aoki;
 }
 }, [currentClient, isClientView]);
 
@@ -140,8 +139,9 @@ e.preventDefault();
 if (!formState.title.trim()) return;
 try {
 const id = editingId || Date.now().toString();
+const requestRef = doc(db, 'agencias', 'aoki', 'pedidos', id);
 const existing = requests.find(r => r.id === editingId);
-await setDoc(doc(db, 'agencias', 'aoki', 'pedidos', id), {
+await setDoc(requestRef, {
 ...formState,
 clientId: activeClientId === 'geral' ? 'c1' : activeClientId,
 status: editingId ? (existing?.status || 'Pendente') : 'Pendente',
@@ -400,7 +400,7 @@ TaskHub
           </div>
           <div className="flex gap-4 pt-6 border-t border-slate-50">
             <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-5 text-slate-400 font-black text-[10px] uppercase tracking-widest hover:text-slate-600 transition-colors">Sair</button>
-            <button type="submit" className="flex-[2] py-5 rounded-[2rem] bg-indigo-600 text-white font-black text-[10px] uppercase tracking-widest shadow-2xl shadow-indigo-100 hover:bg-indigo-700 transition-all active:scale-95">{editingId ? 'Guardar Alterações' : 'Enviar Pedido à Aoki'}</button>
+            <button type="submit" className="flex-[2] py-5 rounded-[2rem] bg-indigo-600 text-white font-black text-[10px] uppercase tracking-widest shadow-2xl shadow-indigo-100 hover:bg-indigo-700 transition-all active:scale-95">Enviar Pedido à Aoki</button>
           </div>
         </form>
       </div>
