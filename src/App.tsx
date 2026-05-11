@@ -1,7 +1,7 @@
 // @ts-nocheck
 import React, { useState, useEffect } from 'react';
 import { initializeApp } from 'firebase/app';
-import { getAuth, signInAnonymously, onAuthStateChanged, User } from 'firebase/auth';
+import { getAuth, signInAnonymously, onAuthStateChanged } from 'firebase/auth';
 import { getFirestore, collection, onSnapshot, doc, setDoc, deleteDoc } from 'firebase/firestore';
 import {
   CheckCircle2,
@@ -67,7 +67,7 @@ const INITIAL_CLIENTS: Client[] = [
 ];
 
 export default function App() {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState(null); // <- REMOVI A TIPAGEM DO USER AQUI PARA NÃO TRAVAR O VERCEL!
   const [isLoading, setIsLoading] = useState(true);
   const [requests, setRequests] = useState<RequestItem[]>([]);
   const [activeClientId, setActiveClientId] = useState(INITIAL_CLIENTS[0].id);
