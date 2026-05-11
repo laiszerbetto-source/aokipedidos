@@ -13,7 +13,6 @@ import {
   Calendar,
   Briefcase,
   Loader2,
-  Share,
   LayoutGrid,
   ClipboardList,
   Zap,
@@ -67,15 +66,13 @@ const INITIAL_CLIENTS: Client[] = [
 ];
 
 export default function App() {
-  const [user, setUser] = useState(null); // <- REMOVI A TIPAGEM DO USER AQUI PARA NÃO TRAVAR O VERCEL!
+  const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [requests, setRequests] = useState<RequestItem[]>([]);
   const [activeClientId, setActiveClientId] = useState(INITIAL_CLIENTS[0].id);
   const [activeTab, setActiveTab] = useState('todos');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [isClientView, setIsClientView] = useState(false);
-  const [showCopyMessage, setShowCopyMessage] = useState(false);
 
   const [formState, setFormState] = useState({
     title: '',
@@ -89,20 +86,10 @@ export default function App() {
   const currentClient = INITIAL_CLIENTS.find(c => c.id === activeClientId) || INITIAL_CLIENTS[0];
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('view') === 'client') {
-      setIsClientView(true);
-      if (activeClientId === 'geral') setActiveClientId('c1');
-    }
-  }, []);
-
-  useEffect(() => {
     if (currentClient) {
-      document.title = isClientView
-        ? `Portal: ${currentClient.name}`
-        : `TaskHub | Gestão Aoki`;
+      document.title = `TaskHub | Gestão Aoki`;
     }
-  }, [currentClient, isClientView]);
+  }, [currentClient]);
 
   useEffect(() => {
     signInAnonymously(auth).catch(err => console.error(err));
@@ -174,19 +161,6 @@ export default function App() {
     }
   };
 
-  const copyClientLink = () => {
-    const url = new URL(window.location.href);
-    url.searchParams.set('view', 'client');
-    const el = document.createElement("textarea");
-    el.value = url.toString();
-    document.body.appendChild(el);
-    el.select();
-    document.execCommand('copy');
-    document.body.removeChild(el);
-    setShowCopyMessage(true);
-    setTimeout(() => setShowCopyMessage(false), 3000);
-  };
-
   if (isLoading) {
     return (
       <div className="flex h-screen items-center justify-center bg-slate-50 text-slate-500 font-bold">
@@ -206,26 +180,17 @@ export default function App() {
           <h1 className="text-xl font-black tracking-tight text-slate-800">TaskHub</h1>
         </div>
 
-        {isClientView && (
-          <div className="bg-emerald-50 p-3 rounded-2xl border border-emerald-100">
-            <p className="text-[9px] font-black text-emerald-600 uppercase tracking-widest flex items-center gap-2">
-              <CheckCircle2 size={12} /> Portal Cliente
-            </p>
-          </div>
-        )}
-
         <div className="space-y-5">
-          <div className="bg-slate-50 p-4 rounded-3xl border border-slate-100 shadow-inner">
+          <div className="bg-slate-50 p-4 rounded-3xl border border-slate-100 shadow-inner mt-4">
             <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">
-              <Briefcase size={12} /> {isClientView ? 'Marca Ativa' : 'Filtro Cliente'}
+              <Briefcase size={12} /> Filtro Cliente
             </p>
             <select 
               className="w-full bg-white border border-slate-200 text-sm font-bold rounded-xl px-3 py-2.5 outline-none cursor-pointer focus:ring-2 focus:ring-indigo-100 transition-all"
               value={activeClientId}
               onChange={(e) => setActiveClientId(e.target.value)}
-              disabled={isClientView && activeClientId !== 'geral'} 
             >
-              {INITIAL_CLIENTS.filter(c => !isClientView || c.id !== 'geral').map(c => (
+              {INITIAL_CLIENTS.map(c => (
                 <option key={c.id} value={c.id}>{c.name}</option>
               ))}
             </select>
@@ -251,14 +216,6 @@ export default function App() {
             ))}
           </nav>
         </div>
-
-        {!isClientView && (
-          <div className="mt-auto pt-4">
-            <button onClick={copyClientLink} className="w-full bg-indigo-50 text-indigo-600 py-3 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-indigo-100 transition-all text-xs border border-indigo-100 shadow-sm">
-              <Share size={14} /> Link p/ Cliente
-            </button>
-          </div>
-        )}
       </aside>
 
       {/* ÁREA PRINCIPAL */}
@@ -276,15 +233,8 @@ export default function App() {
           </div>
         </header>
 
-        {showCopyMessage && (
-          <div className="mb-6 w-fit bg-emerald-500 text-white px-6 py-3 rounded-2xl flex items-center gap-3 animate-in slide-in-from-top duration-300 shadow-lg">
-            <CheckCircle2 size={16} />
-            <span className="font-bold text-xs uppercase tracking-widest">Link do portal copiado!</span>
-          </div>
-        )}
-
-        {/* GRID DE CARTÕES "INQUEBRÁVEIS" */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 md:gap-8 w-full items-start pb-24">
+        {/* GRID DE CARTÕES RESPONSIVOS */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 w-full items-start pb-24">
           {filteredRequests.length === 0 ? (
             <div className="bg-white border-2 border-dashed border-slate-200 rounded-[3rem] p-20 text-center flex flex-col items-center col-span-full">
               <ClipboardList className="text-slate-200 w-16 h-16 mb-4" />
@@ -292,18 +242,18 @@ export default function App() {
             </div>
           ) : (
             filteredRequests.map(request => (
-              <div key={request.id} className="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm hover:shadow-xl transition-all relative overflow-hidden flex flex-col group h-[380px]">
+              <div key={request.id} className="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm hover:shadow-xl transition-all relative flex flex-col group min-h-[360px]">
                 
                 {/* Faixa Lateral de Prioridade */}
                 <div className={`absolute left-0 top-6 bottom-6 w-1.5 rounded-r-md ${
                   request.priority === 'Urgente' ? 'bg-red-500' : request.priority === 'Normal' ? 'bg-indigo-500' : 'bg-slate-300'
                 }`} />
 
-                {/* CABEÇALHO DO CARD */}
+                {/* CABEÇALHO DO CARD COM FLEX-WRAP PARA NÃO ESMAGAR */}
                 <div className="p-6 pb-4 border-b border-slate-50 shrink-0">
-                  <div className="pl-3 flex flex-col gap-3">
-                    <div className="flex justify-between items-start gap-2">
-                       <h3 className="text-lg font-black text-slate-800 tracking-tight line-clamp-1 flex-1">{request.title}</h3>
+                  <div className="pl-3 flex flex-col gap-4">
+                    <div className="flex flex-wrap justify-between items-start gap-3">
+                       <h3 className="text-lg font-black text-slate-800 tracking-tight flex-1 min-w-[120px] break-words leading-tight">{request.title}</h3>
                        <div className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5 border shadow-sm shrink-0 ${
                           request.status === 'Concluído' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 
                           request.status === 'Em Produção' ? 'bg-blue-50 text-blue-600 border-blue-100' : 'bg-amber-50 text-amber-600 border-amber-100'
@@ -314,9 +264,9 @@ export default function App() {
                     </div>
                     
                     <div className="flex flex-wrap items-center gap-2 text-[9px] font-bold text-slate-400 uppercase tracking-widest">
-                       <span className="flex items-center gap-1 bg-slate-50 border border-slate-100 px-2 py-1 rounded-md"><LayoutGrid size={10} /> {request.format}</span>
-                       <span className="flex items-center gap-1 bg-slate-50 border border-slate-100 px-2 py-1 rounded-md"><Calendar size={10} /> Prazo: {request.deadline ? request.deadline.split('-').reverse().join('/') : 'A combinar'}</span>
-                       {request.priority === 'Urgente' && <span className="text-red-500 bg-red-50 px-2 py-1 rounded-md border border-red-100 flex items-center gap-1"><AlertCircle size={10} /> Urgente</span>}
+                       <span className="flex items-center gap-1 bg-slate-50 border border-slate-100 px-2 py-1 rounded-md shrink-0"><LayoutGrid size={10} /> {request.format}</span>
+                       <span className="flex items-center gap-1 bg-slate-50 border border-slate-100 px-2 py-1 rounded-md shrink-0"><Calendar size={10} /> Prazo: {request.deadline ? request.deadline.split('-').reverse().join('/') : 'A combinar'}</span>
+                       {request.priority === 'Urgente' && <span className="text-red-500 bg-red-50 px-2 py-1 rounded-md border border-red-100 flex items-center gap-1 shrink-0"><AlertCircle size={10} /> Urgente</span>}
                     </div>
                   </div>
                 </div>
@@ -342,37 +292,31 @@ export default function App() {
                       )}
                     </div>
                     
-                    {!isClientView ? (
-                      <div className="flex gap-1">
-                        <button onClick={() => { setEditingId(request.id); setFormState({...request}); setIsModalOpen(true); }} className="p-2 text-slate-400 hover:bg-white hover:text-indigo-600 hover:shadow-sm rounded-xl transition-all" title="Editar"><Edit3 size={16} /></button>
-                        <button onClick={() => deleteRequest(request.id)} className="p-2 text-slate-300 hover:bg-rose-50 hover:text-rose-600 rounded-xl transition-all" title="Excluir"><Trash2 size={16} /></button>
-                      </div>
-                    ) : (
-                      request.status === 'Pendente' && <button onClick={() => deleteRequest(request.id)} className="text-rose-400 text-[9px] px-3 font-black uppercase hover:text-rose-600 transition-all">Cancelar Pedido</button>
-                    )}
+                    <div className="flex gap-1">
+                      <button onClick={() => { setEditingId(request.id); setFormState({...request}); setIsModalOpen(true); }} className="p-2 text-slate-400 hover:bg-white hover:text-indigo-600 hover:shadow-sm rounded-xl transition-all" title="Editar"><Edit3 size={16} /></button>
+                      <button onClick={() => deleteRequest(request.id)} className="p-2 text-slate-300 hover:bg-rose-50 hover:text-rose-600 rounded-xl transition-all" title="Excluir"><Trash2 size={16} /></button>
+                    </div>
                   </div>
                   
                   {/* Linha 2: Ações de Status (Grid 50/50 para não esmagar) */}
-                  {!isClientView && (
-                    <div className="grid grid-cols-2 gap-2 w-full">
-                      <button 
-                        onClick={() => updateStatus(request.id, request.status === 'Pendente' ? 'Em Produção' : request.status === 'Em Produção' ? 'Pendente' : 'Em Produção')} 
-                        className="w-full bg-white text-slate-600 py-3 rounded-xl text-[9px] md:text-[10px] font-black border border-slate-200 hover:bg-slate-50 transition-colors uppercase tracking-widest"
-                      >
-                        {request.status === 'Pendente' ? 'Iniciar' : request.status === 'Em Produção' ? 'Pausar' : 'Reabrir'}
-                      </button>
-                      
-                      <button 
-                        onClick={() => updateStatus(request.id, 'Concluído')} 
-                        disabled={request.status === 'Concluído'} 
-                        className={`w-full py-3 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all ${
-                          request.status === 'Concluído' ? 'bg-emerald-50 text-emerald-400 border border-emerald-100 cursor-not-allowed' : 'bg-slate-900 text-white shadow-lg shadow-slate-200 hover:bg-black'
-                        }`}
-                      >
-                        {request.status === 'Concluído' ? 'Entregue' : 'Concluir'}
-                      </button>
-                    </div>
-                  )}
+                  <div className="grid grid-cols-2 gap-2 w-full">
+                    <button 
+                      onClick={() => updateStatus(request.id, request.status === 'Pendente' ? 'Em Produção' : request.status === 'Em Produção' ? 'Pendente' : 'Em Produção')} 
+                      className="w-full bg-white text-slate-600 py-3 rounded-xl text-[9px] md:text-[10px] font-black border border-slate-200 hover:bg-slate-50 transition-colors uppercase tracking-widest"
+                    >
+                      {request.status === 'Pendente' ? 'Iniciar' : request.status === 'Em Produção' ? 'Pausar' : 'Reabrir'}
+                    </button>
+                    
+                    <button 
+                      onClick={() => updateStatus(request.id, 'Concluído')} 
+                      disabled={request.status === 'Concluído'} 
+                      className={`w-full py-3 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all ${
+                        request.status === 'Concluído' ? 'bg-emerald-50 text-emerald-400 border border-emerald-100 cursor-not-allowed' : 'bg-slate-900 text-white shadow-lg shadow-slate-200 hover:bg-black'
+                      }`}
+                    >
+                      {request.status === 'Concluído' ? 'Entregue' : 'Concluir'}
+                    </button>
+                  </div>
                 </div>
               </div>
             ))
@@ -381,15 +325,13 @@ export default function App() {
       </main>
 
       {/* FAB: BOTÃO FLUTUANTE DE NOVO PEDIDO */}
-      {(!isClientView || activeClientId !== 'geral') && (
-        <button 
-          onClick={() => { setEditingId(null); setFormState({ title: '', description: '', format: 'Social Media', priority: 'Normal', deadline: '', referenceUrl: '' }); setIsModalOpen(true); }}
-          className="fixed bottom-6 right-6 md:bottom-10 md:right-10 bg-indigo-600 text-white h-14 w-14 md:h-auto md:w-auto md:px-8 md:py-4 rounded-full font-black shadow-[0_10px_40px_-10px_rgba(79,70,229,0.8)] hover:bg-indigo-700 hover:-translate-y-1 transition-all z-40 flex items-center justify-center gap-3 group"
-        >
-          <Plus size={24} className="group-hover:rotate-90 transition-transform duration-300" /> 
-          <span className="hidden md:block uppercase tracking-widest text-[11px]">Novo Pedido</span>
-        </button>
-      )}
+      <button 
+        onClick={() => { setEditingId(null); setFormState({ title: '', description: '', format: 'Social Media', priority: 'Normal', deadline: '', referenceUrl: '' }); setIsModalOpen(true); }}
+        className="fixed bottom-6 right-6 md:bottom-10 md:right-10 bg-indigo-600 text-white h-14 w-14 md:h-auto md:w-auto md:px-8 md:py-4 rounded-full font-black shadow-[0_10px_40px_-10px_rgba(79,70,229,0.8)] hover:bg-indigo-700 hover:-translate-y-1 transition-all z-40 flex items-center justify-center gap-3 group"
+      >
+        <Plus size={24} className="group-hover:rotate-90 transition-transform duration-300" /> 
+        <span className="hidden md:block uppercase tracking-widest text-[11px]">Novo Pedido</span>
+      </button>
 
       {/* MODAL NOVO/EDITAR PEDIDO */}
       {isModalOpen && (
