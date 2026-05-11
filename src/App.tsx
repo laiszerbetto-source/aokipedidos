@@ -144,7 +144,7 @@ export default function App() {
         
         const mensagem = `🚀 *Novo Pedido: Aoki TaskHub*%0A*Cliente:* ${clientName}%0A*Projeto:* ${formState.title}%0A*Urgência:* ${formState.priority}%0A*Prazo:* ${formState.deadline || 'A combinar'}`;
         
-        fetch(`https://api.callmebot.com/whatsapp.php?phone=${myPhone}&text=${mensagem}&apikey=${myApiKey}`, { 
+        fetch(`https://api.callmebot.com/whatsapp.php?phone=551838511423&text=${mensagem}&apikey=4845462`, { 
           method: 'GET',
           mode: 'no-cors' // <-- ISTO PREVINE O ERRO DO NAVEGADOR
         }).catch(err => console.log("Erro no aviso do Whats", err));
