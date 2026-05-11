@@ -118,13 +118,16 @@ export default function App() {
     return clientMatch && statusMatch;
   });
 
-  const handleSubmit = async (e) => {
+const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formState.title.trim()) return;
     try {
       const id = editingId || Date.now().toString();
       const requestRef = doc(db, 'agencias', 'aoki', 'pedidos', id);
       const existing = requests.find(r => r.id === editingId);
+      
+      const isNewRequest = !editingId; // Verifica se é um pedido novo para mandar o WhatsApp
+
       await setDoc(requestRef, {
         ...formState,
         clientId: activeClientId === 'geral' ? 'c1' : activeClientId,
@@ -132,6 +135,19 @@ export default function App() {
         createdAt: editingId ? (existing?.createdAt || new Date().toISOString()) : new Date().toISOString(),
       }, { merge: true });
       
+      // DISPARO PARA O WHATSAPP SE FOR UM PEDIDO NOVO
+      if (isNewRequest) {
+        const myPhone = "551838511423"; 
+        const myApiKey = "4845462"; 
+        
+        const clientName = INITIAL_CLIENTS.find(c => c.id === (activeClientId === 'geral' ? 'c1' : activeClientId))?.name;
+        
+        const mensagem = `🚀 *Novo Pedido: Aoki TaskHub*%0A*Cliente:* ${clientName}%0A*Projeto:* ${formState.title}%0A*Urgência:* ${formState.priority}%0A*Prazo:* ${formState.deadline || 'A combinar'}`;
+        
+        fetch(`https://api.callmebot.com/whatsapp.php?phone=${myPhone}&text=${mensagem}&apikey=${myApiKey}`, { method: 'GET' })
+          .catch(err => console.log("Erro no aviso do Whats", err));
+      }
+
       setIsModalOpen(false);
       setEditingId(null);
       setFormState({ title: '', description: '', format: 'Social Media', priority: 'Normal', deadline: '', referenceUrl: '', deliveryUrl: '' });
