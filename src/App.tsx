@@ -179,7 +179,7 @@ export default function App() {
   return (
     <div className="fixed inset-0 flex bg-[#F8FAFC] font-sans text-slate-900 overflow-hidden print:hidden relative">
       
-      {/* SIDEBAR ACHATADA E RESPONSIVA */}
+      {/* SIDEBAR */}
       <aside className="w-64 bg-white border-r border-slate-200 p-5 flex flex-col gap-5 h-full shrink-0 z-20 shadow-sm overflow-y-auto scrollbar-hide">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl bg-slate-900 text-white flex items-center justify-center font-black text-lg shadow-lg">A</div>
@@ -226,7 +226,7 @@ export default function App() {
       </aside>
 
       {/* ÁREA PRINCIPAL */}
-      <main className="flex-1 p-6 md:p-8 overflow-y-auto">
+      <main className="flex-1 p-6 md:p-10 overflow-y-auto">
         <header className="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
             <div className="flex items-center gap-2 mb-1">
@@ -240,7 +240,7 @@ export default function App() {
           </div>
         </header>
 
-        {/* GRID DE CARTÕES "INQUEBRÁVEIS" COM AUTO-FILL */}
+        {/* GRID DE CARTÕES */}
         <div className="grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-8 w-full items-start pb-24">
           {filteredRequests.length === 0 ? (
             <div className="bg-white border-2 border-dashed border-slate-200 rounded-[3rem] p-20 text-center flex flex-col items-center col-span-full">
@@ -304,10 +304,8 @@ export default function App() {
                   </div>
                 )}
 
-                {/* RODAPÉ DO CARD INQUEBRÁVEL (CSS GRID) */}
+                {/* RODAPÉ DO CARD */}
                 <div className="p-6 pl-10 pt-0 mt-auto shrink-0 flex flex-col gap-3">
-                  
-                  {/* Linha 1: Ferramentas Centradas */}
                   <div className="flex items-center justify-between bg-slate-50 p-1.5 rounded-2xl border border-slate-100">
                     <div className="flex gap-1">
                       {request.referenceUrl ? (
@@ -317,7 +315,6 @@ export default function App() {
                       ) : (
                         <div className="p-2 text-slate-300 rounded-xl" title="Sem Link de Apoio"><LinkIcon size={16} /></div>
                       )}
-                      
                       <button onClick={() => setFeedbackPost(request)} className="p-2 text-indigo-500 hover:bg-white hover:shadow-sm rounded-xl transition-all relative" title="Chat/Alterações">
                         <MessageSquare size={16} />
                         {request.feedbacks?.length > 0 && <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-indigo-500 rounded-full border-2 border-white animate-pulse"></span>}
@@ -330,50 +327,31 @@ export default function App() {
                     </div>
                   </div>
                   
-                  {/* Linha 2: Ações de Status Dinâmicas (Grid 50/50 para não esmagar) */}
                   <div className="grid grid-cols-2 gap-2 w-full">
                     {request.status === 'Concluído' ? (
                       <>
-                        <button 
-                          onClick={() => updateStatus(request.id, 'Em Produção')} 
-                          className="w-full bg-white text-slate-600 py-3 rounded-xl text-[9px] md:text-[10px] font-black border border-slate-200 hover:bg-slate-50 transition-colors uppercase tracking-widest"
-                        >
+                        <button onClick={() => updateStatus(request.id, 'Em Produção')} className="w-full bg-white text-slate-600 py-3 rounded-xl text-[9px] md:text-[10px] font-black border border-slate-200 hover:bg-slate-50 transition-colors uppercase tracking-widest">
                           Reabrir
                         </button>
-                        <button 
-                          disabled
-                          className="w-full bg-emerald-50 text-emerald-400 border border-emerald-100 py-3 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest cursor-not-allowed"
-                        >
+                        <button disabled className="w-full bg-emerald-50 text-emerald-400 border border-emerald-100 py-3 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest cursor-not-allowed">
                           Entregue
                         </button>
                       </>
                     ) : request.deliveryUrl && request.status !== 'Alteração' ? (
                       <>
-                        <button 
-                          onClick={() => updateStatus(request.id, 'Alteração')} 
-                          className="w-full bg-white text-purple-600 border border-purple-200 py-3 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest hover:bg-purple-50 transition-all"
-                        >
+                        <button onClick={() => updateStatus(request.id, 'Alteração')} className="w-full bg-white text-purple-600 border border-purple-200 py-3 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest hover:bg-purple-50 transition-all">
                           Pedir Alteração
                         </button>
-                        <button 
-                          onClick={() => updateStatus(request.id, 'Concluído')} 
-                          className="w-full bg-emerald-500 text-white py-3 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest shadow-lg hover:bg-emerald-600 transition-all"
-                        >
+                        <button onClick={() => updateStatus(request.id, 'Concluído')} className="w-full bg-emerald-500 text-white py-3 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest shadow-lg hover:bg-emerald-600 transition-all">
                           Aprovar
                         </button>
                       </>
                     ) : (
                       <>
-                        <button 
-                          onClick={() => updateStatus(request.id, request.status === 'Pendente' ? 'Em Produção' : 'Pendente')} 
-                          className="w-full bg-white text-slate-600 py-3 rounded-xl text-[9px] md:text-[10px] font-black border border-slate-200 hover:bg-slate-50 transition-colors uppercase tracking-widest"
-                        >
+                        <button onClick={() => updateStatus(request.id, request.status === 'Pendente' ? 'Em Produção' : 'Pendente')} className="w-full bg-white text-slate-600 py-3 rounded-xl text-[9px] md:text-[10px] font-black border border-slate-200 hover:bg-slate-50 transition-colors uppercase tracking-widest">
                           {request.status === 'Pendente' ? 'Iniciar' : 'Pausar'}
                         </button>
-                        <button 
-                          onClick={() => { setEditingId(request.id); setFormState({...request}); setIsModalOpen(true); }} 
-                          className="w-full bg-indigo-600 text-white py-3 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all shadow-lg hover:bg-indigo-700"
-                        >
+                        <button onClick={() => { setEditingId(request.id); setFormState({...request}); setIsModalOpen(true); }} className="w-full bg-indigo-600 text-white py-3 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all shadow-lg hover:bg-indigo-700">
                           Entregar Arte
                         </button>
                       </>
@@ -386,7 +364,7 @@ export default function App() {
         </div>
       </main>
 
-      {/* FAB: BOTÃO FLUTUANTE DE NOVO PEDIDO */}
+      {/* FAB */}
       <button 
         onClick={() => { setEditingId(null); setFormState({ title: '', description: '', format: 'Social Media', priority: 'Normal', deadline: '', referenceUrl: '', deliveryUrl: '' }); setIsModalOpen(true); }}
         className="fixed bottom-6 right-6 md:bottom-10 md:right-10 bg-indigo-600 text-white h-14 w-14 md:h-auto md:w-auto md:px-8 md:py-4 rounded-full font-black shadow-[0_10px_40px_-10px_rgba(79,70,229,0.8)] hover:bg-indigo-700 hover:-translate-y-1 transition-all z-40 flex items-center justify-center gap-3 group"
@@ -395,7 +373,7 @@ export default function App() {
         <span className="hidden md:block uppercase tracking-widest text-[11px]">Novo Pedido</span>
       </button>
 
-      {/* MODAL DE CHAT DE FEEDBACK / ALTERAÇÕES (MURAL ÚNICO) */}
+      {/* MURAL DE CHAT */}
       {feedbackPost && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[70] flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col h-[600px] max-h-[90vh]">
@@ -433,20 +411,25 @@ export default function App() {
         </div>
       )}
 
-      {/* MODAL NOVO/EDITAR PEDIDO */}
+      {/* MODAL NOVO/EDITAR PEDIDO (AGORA COM SCROLL FIXADO) */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[60] flex items-end md:items-center justify-center p-0 md:p-4">
-          <div className="bg-white w-full h-[90vh] md:h-auto md:max-w-2xl rounded-t-[2.5rem] md:rounded-[3.5rem] shadow-2xl overflow-hidden animate-in slide-in-from-bottom-full md:zoom-in-95 duration-300 flex flex-col border border-white/20">
-            <div className="p-6 md:p-8 border-b border-slate-50 flex justify-between items-center bg-white/90 backdrop-blur-xl shrink-0">
+        <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[60] flex items-center justify-center p-4">
+          <div className="bg-white w-full h-[95vh] md:h-auto md:max-h-[90vh] md:max-w-2xl rounded-[2.5rem] md:rounded-[3.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col border border-white/20">
+            
+            {/* CABEÇALHO FIXO */}
+            <div className="p-6 md:p-8 border-b border-slate-50 flex justify-between items-center bg-white shrink-0 z-10">
               <div>
                 <h2 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight uppercase">{editingId ? 'Gerir Solicitação' : 'Novo Pedido de Arte'}</h2>
                 <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] mt-1.5">Para: <span className="text-indigo-600">{currentClient?.name}</span></p>
               </div>
-              <button onClick={() => setIsModalOpen(false)} className="p-2 md:p-3 bg-slate-100 rounded-2xl text-slate-400 hover:text-slate-900 transition-all hover:rotate-90"><X size={20} className="md:w-6 md:h-6" /></button>
+              <button type="button" onClick={() => setIsModalOpen(false)} className="p-2 md:p-3 bg-slate-100 rounded-2xl text-slate-400 hover:text-slate-900 transition-all hover:rotate-90"><X size={20} className="md:w-6 md:h-6" /></button>
             </div>
             
-            <div className="flex-1 overflow-y-auto">
-              <form onSubmit={handleSubmit} className="p-6 md:p-8 space-y-8 md:space-y-10">
+            {/* CORPO DO MODAL E BOTÕES */}
+            <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+              
+              {/* ÁREA DE SCROLL (Apenas os campos rolam) */}
+              <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-8 md:space-y-10">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-10">
                   <div className="space-y-6 md:space-y-8">
                     <div>
@@ -496,13 +479,14 @@ export default function App() {
                     </div>
                   </div>
                 )}
-                
-                <div className="flex gap-3 md:gap-4 pt-8 border-t border-slate-50">
-                  <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-4 md:py-5 text-slate-400 font-black text-[10px] uppercase tracking-widest hover:text-slate-600 transition-colors">Cancelar</button>
-                  <button type="submit" className="flex-[2] py-4 md:py-5 rounded-[1.5rem] md:rounded-[2rem] bg-indigo-600 text-white font-black text-[10px] uppercase tracking-widest shadow-2xl shadow-indigo-100 hover:bg-indigo-700 transition-all active:scale-95">Salvar Pedido</button>
-                </div>
-              </form>
-            </div>
+              </div>
+
+              {/* RODAPÉ FIXO COM OS BOTÕES */}
+              <div className="p-6 md:p-8 border-t border-slate-50 bg-white shrink-0 flex gap-3 md:gap-4 z-10">
+                <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-4 md:py-5 text-slate-400 font-black text-[10px] uppercase tracking-widest hover:bg-slate-50 rounded-[1.5rem] transition-colors">Cancelar</button>
+                <button type="submit" className="flex-[2] py-4 md:py-5 rounded-[1.5rem] md:rounded-[2rem] bg-indigo-600 text-white font-black text-[10px] uppercase tracking-widest shadow-lg shadow-indigo-100 hover:bg-indigo-700 transition-all active:scale-95">Salvar Pedido</button>
+              </div>
+            </form>
           </div>
         </div>
       )}
