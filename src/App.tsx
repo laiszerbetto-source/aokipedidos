@@ -21,7 +21,6 @@ import {
   X,
   AlertCircle,
   MessageSquare,
-  Share,
   SendHorizonal,
   FileCheck
 } from 'lucide-react';
@@ -58,8 +57,6 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('todos');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
-  const [isClientView, setIsClientView] = useState(false);
-  const [showCopyMessage, setShowCopyMessage] = useState(false);
 
   // Sistema de Chat/Feedback
   const [feedbackPost, setFeedbackPost] = useState(null);
@@ -72,24 +69,16 @@ export default function App() {
     priority: 'Normal',
     deadline: '',
     referenceUrl: '',
-    deliveryUrl: '' // NOVO: Link da arte pronta para aprovação
+    deliveryUrl: '' 
   });
 
   const currentClient = INITIAL_CLIENTS.find(c => c.id === activeClientId) || INITIAL_CLIENTS[0];
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('view') === 'client') {
-      setIsClientView(true);
-      if (activeClientId === 'geral') setActiveClientId('c1');
-    }
-  }, []);
-
-  useEffect(() => {
     if (currentClient) {
-      document.title = isClientView ? `Portal: ${currentClient.name}` : `TaskHub | Gestão Aoki`;
+      document.title = `TaskHub | Gestão Aoki`;
     }
-  }, [currentClient, isClientView]);
+  }, [currentClient]);
 
   useEffect(() => {
     signInAnonymously(auth).catch(err => console.error(err));
@@ -169,24 +158,10 @@ export default function App() {
     }
   };
 
-  const copyClientLink = () => {
-    const url = new URL(window.location.href);
-    url.searchParams.set('view', 'client');
-    const el = document.createElement("textarea");
-    el.value = url.toString();
-    document.body.appendChild(el);
-    el.select();
-    document.execCommand('copy');
-    document.body.removeChild(el);
-    setShowCopyMessage(true);
-    setTimeout(() => setShowCopyMessage(false), 3000);
-  };
-
   const handleSendFeedback = async (e) => {
     e.preventDefault();
     if (!newFeedbackMessage.trim() || !feedbackPost) return;
-    const authorRole = isClientView ? 'Cliente' : 'Agência';
-    const newMsg = { text: newFeedbackMessage.trim(), author: authorRole, date: new Date().toISOString() };
+    const newMsg = { text: newFeedbackMessage.trim(), date: new Date().toISOString() };
     const updatedFeedbacks = [...(feedbackPost.feedbacks || []), newMsg];
     await setDoc(doc(db, 'agencias', 'aoki', 'pedidos', feedbackPost.id), { feedbacks: updatedFeedbacks }, { merge: true });
     setNewFeedbackMessage('');
@@ -211,26 +186,17 @@ export default function App() {
           <h1 className="text-xl font-black tracking-tight text-slate-800">TaskHub</h1>
         </div>
 
-        {isClientView && (
-          <div className="bg-emerald-50 p-3 rounded-2xl border border-emerald-100">
-            <p className="text-[9px] font-black text-emerald-600 uppercase tracking-widest flex items-center gap-2">
-              <CheckCircle2 size={12} /> Portal Cliente
-            </p>
-          </div>
-        )}
-
         <div className="space-y-5">
-          <div className="bg-slate-50 p-4 rounded-3xl border border-slate-100 shadow-inner mt-2">
+          <div className="bg-slate-50 p-4 rounded-3xl border border-slate-100 shadow-inner mt-4">
             <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">
-              <Briefcase size={12} /> {isClientView ? 'Marca Ativa' : 'Filtro Cliente'}
+              <Briefcase size={12} /> Filtro Cliente
             </p>
             <select 
               className="w-full bg-white border border-slate-200 text-sm font-bold rounded-xl px-3 py-2.5 outline-none cursor-pointer focus:ring-2 focus:ring-indigo-100 transition-all"
               value={activeClientId}
               onChange={(e) => setActiveClientId(e.target.value)}
-              disabled={isClientView && activeClientId !== 'geral'} 
             >
-              {INITIAL_CLIENTS.filter(c => !isClientView || c.id !== 'geral').map(c => (
+              {INITIAL_CLIENTS.map(c => (
                 <option key={c.id} value={c.id}>{c.name}</option>
               ))}
             </select>
@@ -257,18 +223,10 @@ export default function App() {
             ))}
           </nav>
         </div>
-
-        {!isClientView && (
-          <div className="mt-auto pt-4 border-t border-slate-100">
-            <button onClick={copyClientLink} className="w-full bg-indigo-50 text-indigo-600 py-3 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-indigo-100 transition-all text-xs border border-indigo-100 shadow-sm">
-              <Share size={14} /> Link p/ Cliente
-            </button>
-          </div>
-        )}
       </aside>
 
       {/* ÁREA PRINCIPAL */}
-      <main className="flex-1 p-6 md:p-10 overflow-y-auto">
+      <main className="flex-1 p-6 md:p-8 overflow-y-auto">
         <header className="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
             <div className="flex items-center gap-2 mb-1">
@@ -282,14 +240,7 @@ export default function App() {
           </div>
         </header>
 
-        {showCopyMessage && (
-          <div className="mb-6 w-fit bg-emerald-500 text-white px-6 py-3 rounded-2xl flex items-center gap-3 animate-in slide-in-from-top duration-300 shadow-lg">
-            <CheckCircle2 size={16} />
-            <span className="font-bold text-xs uppercase tracking-widest">Link do portal copiado!</span>
-          </div>
-        )}
-
-        {/* GRID DE CARTÕES "INQUEBRÁVEIS" COM AUTO-FILL (Nunca vai esmagar) */}
+        {/* GRID DE CARTÕES "INQUEBRÁVEIS" COM AUTO-FILL */}
         <div className="grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-8 w-full items-start pb-24">
           {filteredRequests.length === 0 ? (
             <div className="bg-white border-2 border-dashed border-slate-200 rounded-[3rem] p-20 text-center flex flex-col items-center col-span-full">
@@ -373,19 +324,45 @@ export default function App() {
                       </button>
                     </div>
                     
-                    {!isClientView ? (
-                      <div className="flex gap-1">
-                        <button onClick={() => { setEditingId(request.id); setFormState({...request}); setIsModalOpen(true); }} className="p-2 text-slate-400 hover:bg-white hover:text-indigo-600 hover:shadow-sm rounded-xl transition-all" title="Editar"><Edit3 size={16} /></button>
-                        <button onClick={() => deleteRequest(request.id)} className="p-2 text-slate-300 hover:bg-rose-50 hover:text-rose-600 rounded-xl transition-all" title="Excluir"><Trash2 size={16} /></button>
-                      </div>
-                    ) : (
-                      request.status === 'Pendente' && <button onClick={() => deleteRequest(request.id)} className="text-rose-400 text-[9px] px-3 font-black uppercase hover:text-rose-600 transition-all">Cancelar Pedido</button>
-                    )}
+                    <div className="flex gap-1">
+                      <button onClick={() => { setEditingId(request.id); setFormState({...request}); setIsModalOpen(true); }} className="p-2 text-slate-400 hover:bg-white hover:text-indigo-600 hover:shadow-sm rounded-xl transition-all" title="Editar"><Edit3 size={16} /></button>
+                      <button onClick={() => deleteRequest(request.id)} className="p-2 text-slate-300 hover:bg-rose-50 hover:text-rose-600 rounded-xl transition-all" title="Excluir"><Trash2 size={16} /></button>
+                    </div>
                   </div>
                   
-                  {/* Linha 2: Ações de Status (Grid para não esmagar) */}
+                  {/* Linha 2: Ações de Status Dinâmicas (Grid 50/50 para não esmagar) */}
                   <div className="grid grid-cols-2 gap-2 w-full">
-                    {!isClientView ? (
+                    {request.status === 'Concluído' ? (
+                      <>
+                        <button 
+                          onClick={() => updateStatus(request.id, 'Em Produção')} 
+                          className="w-full bg-white text-slate-600 py-3 rounded-xl text-[9px] md:text-[10px] font-black border border-slate-200 hover:bg-slate-50 transition-colors uppercase tracking-widest"
+                        >
+                          Reabrir
+                        </button>
+                        <button 
+                          disabled
+                          className="w-full bg-emerald-50 text-emerald-400 border border-emerald-100 py-3 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest cursor-not-allowed"
+                        >
+                          Entregue
+                        </button>
+                      </>
+                    ) : request.deliveryUrl && request.status !== 'Alteração' ? (
+                      <>
+                        <button 
+                          onClick={() => updateStatus(request.id, 'Alteração')} 
+                          className="w-full bg-white text-purple-600 border border-purple-200 py-3 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest hover:bg-purple-50 transition-all"
+                        >
+                          Pedir Alteração
+                        </button>
+                        <button 
+                          onClick={() => updateStatus(request.id, 'Concluído')} 
+                          className="w-full bg-emerald-500 text-white py-3 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest shadow-lg hover:bg-emerald-600 transition-all"
+                        >
+                          Aprovar
+                        </button>
+                      </>
+                    ) : (
                       <>
                         <button 
                           onClick={() => updateStatus(request.id, request.status === 'Pendente' ? 'Em Produção' : 'Pendente')} 
@@ -393,33 +370,11 @@ export default function App() {
                         >
                           {request.status === 'Pendente' ? 'Iniciar' : 'Pausar'}
                         </button>
-                        
                         <button 
                           onClick={() => { setEditingId(request.id); setFormState({...request}); setIsModalOpen(true); }} 
                           className="w-full bg-indigo-600 text-white py-3 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all shadow-lg hover:bg-indigo-700"
                         >
                           Entregar Arte
-                        </button>
-                      </>
-                    ) : (
-                      <>
-                        <button 
-                          onClick={() => updateStatus(request.id, 'Alteração')} 
-                          disabled={!request.deliveryUrl || request.status === 'Concluído'}
-                          className={`w-full py-3 rounded-xl text-[9px] md:text-[10px] font-black border uppercase tracking-widest transition-all ${
-                            !request.deliveryUrl || request.status === 'Concluído' ? 'bg-slate-50 text-slate-300 border-slate-100 cursor-not-allowed' : 'bg-white text-purple-600 border-purple-200 hover:bg-purple-50'
-                          }`}
-                        >
-                          Pedir Alteração
-                        </button>
-                        <button 
-                          onClick={() => updateStatus(request.id, 'Concluído')} 
-                          disabled={!request.deliveryUrl || request.status === 'Concluído'}
-                          className={`w-full py-3 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all ${
-                            !request.deliveryUrl || request.status === 'Concluído' ? 'bg-emerald-50 text-emerald-300 cursor-not-allowed' : 'bg-emerald-500 text-white shadow-lg hover:bg-emerald-600'
-                          }`}
-                        >
-                          Aprovar
                         </button>
                       </>
                     )}
@@ -432,23 +387,21 @@ export default function App() {
       </main>
 
       {/* FAB: BOTÃO FLUTUANTE DE NOVO PEDIDO */}
-      {(!isClientView || activeClientId !== 'geral') && (
-        <button 
-          onClick={() => { setEditingId(null); setFormState({ title: '', description: '', format: 'Social Media', priority: 'Normal', deadline: '', referenceUrl: '', deliveryUrl: '' }); setIsModalOpen(true); }}
-          className="fixed bottom-6 right-6 md:bottom-10 md:right-10 bg-indigo-600 text-white h-14 w-14 md:h-auto md:w-auto md:px-8 md:py-4 rounded-full font-black shadow-[0_10px_40px_-10px_rgba(79,70,229,0.8)] hover:bg-indigo-700 hover:-translate-y-1 transition-all z-40 flex items-center justify-center gap-3 group"
-        >
-          <Plus size={24} className="group-hover:rotate-90 transition-transform duration-300" /> 
-          <span className="hidden md:block uppercase tracking-widest text-[11px]">Novo Pedido</span>
-        </button>
-      )}
+      <button 
+        onClick={() => { setEditingId(null); setFormState({ title: '', description: '', format: 'Social Media', priority: 'Normal', deadline: '', referenceUrl: '', deliveryUrl: '' }); setIsModalOpen(true); }}
+        className="fixed bottom-6 right-6 md:bottom-10 md:right-10 bg-indigo-600 text-white h-14 w-14 md:h-auto md:w-auto md:px-8 md:py-4 rounded-full font-black shadow-[0_10px_40px_-10px_rgba(79,70,229,0.8)] hover:bg-indigo-700 hover:-translate-y-1 transition-all z-40 flex items-center justify-center gap-3 group"
+      >
+        <Plus size={24} className="group-hover:rotate-90 transition-transform duration-300" /> 
+        <span className="hidden md:block uppercase tracking-widest text-[11px]">Novo Pedido</span>
+      </button>
 
-      {/* MODAL DE CHAT DE FEEDBACK / ALTERAÇÕES */}
+      {/* MODAL DE CHAT DE FEEDBACK / ALTERAÇÕES (MURAL ÚNICO) */}
       {feedbackPost && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[70] flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col h-[600px] max-h-[90vh]">
             <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50 shrink-0">
               <div>
-                <h2 className="text-lg font-black text-slate-900 flex items-center gap-2"><MessageSquare size={18} className="text-indigo-500" /> Histórico & Chat</h2>
+                <h2 className="text-lg font-black text-slate-900 flex items-center gap-2"><MessageSquare size={18} className="text-indigo-500" /> Mural do Pedido</h2>
                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Status: {feedbackPost.status}</p>
               </div>
               <button onClick={() => setFeedbackPost(null)} className="p-2 bg-white rounded-xl text-slate-400 shadow-sm hover:bg-slate-100 transition-colors"><X size={20} /></button>
@@ -458,25 +411,22 @@ export default function App() {
               {(!feedbackPost.feedbacks || feedbackPost.feedbacks.length === 0) ? (
                 <div className="h-full flex flex-col items-center justify-center text-slate-300 space-y-2 opacity-50">
                   <MessageSquare size={32} />
-                  <p className="text-xs font-bold uppercase tracking-widest">Sem mensagens</p>
+                  <p className="text-xs font-bold uppercase tracking-widest">Sem recados ainda</p>
                 </div>
               ) : (
-                feedbackPost.feedbacks.map((msg, i) => {
-                  const isMine = (isClientView && msg.author === 'Cliente') || (!isClientView && msg.author === 'Agência');
-                  return (
-                    <div key={i} className={`flex flex-col ${isMine ? 'items-end' : 'items-start'}`}>
-                      <span className="text-[9px] font-black text-slate-400 uppercase mb-1">{msg.author} • {new Date(msg.date).toLocaleTimeString('pt-PT', {hour: '2-digit', minute:'2-digit'})}</span>
-                      <div className={`px-4 py-3 rounded-2xl max-w-[85%] text-sm font-medium leading-relaxed shadow-sm ${isMine ? 'bg-indigo-600 text-white rounded-br-none' : 'bg-slate-100 text-slate-800 rounded-bl-none'}`}>
-                        {msg.text}
-                      </div>
+                feedbackPost.feedbacks.map((msg, i) => (
+                  <div key={i} className="flex flex-col items-start">
+                    <span className="text-[9px] font-black text-slate-400 uppercase mb-1">{new Date(msg.date).toLocaleTimeString('pt-PT', {hour: '2-digit', minute:'2-digit'})}</span>
+                    <div className="px-4 py-3 rounded-2xl max-w-[85%] text-sm font-medium leading-relaxed shadow-sm bg-slate-100 text-slate-800 rounded-bl-none">
+                      {msg.text}
                     </div>
-                  )
-                })
+                  </div>
+                ))
               )}
             </div>
 
             <form onSubmit={handleSendFeedback} className="p-4 border-t border-slate-100 bg-slate-50 flex gap-2 shrink-0">
-              <input type="text" value={newFeedbackMessage} onChange={(e) => setNewFeedbackMessage(e.target.value)} placeholder="Deixe um comentário..." className="flex-1 px-4 py-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-indigo-500 transition-colors" />
+              <input type="text" value={newFeedbackMessage} onChange={(e) => setNewFeedbackMessage(e.target.value)} placeholder="Deixe um recado..." className="flex-1 px-4 py-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-indigo-500 transition-colors" />
               <button type="submit" disabled={!newFeedbackMessage.trim()} className="p-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 disabled:opacity-50 transition-all flex-shrink-0"><SendHorizonal size={20} /></button>
             </form>
           </div>
@@ -501,13 +451,13 @@ export default function App() {
                   <div className="space-y-6 md:space-y-8">
                     <div>
                       <label className="block text-[10px] font-black text-slate-400 uppercase mb-3 tracking-widest">Nome do Pedido</label>
-                      <input type="text" required placeholder="Ex: Banner Site Liquidação" className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold outline-none focus:ring-4 focus:ring-indigo-50 focus:border-indigo-500 transition-all shadow-inner" value={formState.title} onChange={(e) => setFormState({...formState, title: e.target.value})} disabled={isClientView && editingId} />
+                      <input type="text" required placeholder="Ex: Banner Site Liquidação" className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold outline-none focus:ring-4 focus:ring-indigo-50 focus:border-indigo-500 transition-all shadow-inner" value={formState.title} onChange={(e) => setFormState({...formState, title: e.target.value})} />
                     </div>
                     <div>
                       <label className="block text-[10px] font-black text-slate-400 uppercase mb-3 tracking-widest">Tipo</label>
                       <div className="grid grid-cols-2 gap-2">
                         {['Social Media', 'Impresso', 'Logo', 'Site/Web'].map(f => (
-                          <button key={f} type="button" onClick={() => setFormState({...formState, format: f})} disabled={isClientView && editingId} className={`py-3 md:py-3.5 rounded-xl border-2 text-[9px] md:text-[10px] font-black uppercase transition-all ${formState.format === f ? 'border-indigo-600 bg-indigo-50 text-indigo-600 shadow-md' : 'border-slate-100 text-slate-400 hover:border-slate-200 disabled:opacity-50'}`}>{f}</button>
+                          <button key={f} type="button" onClick={() => setFormState({...formState, format: f})} className={`py-3 md:py-3.5 rounded-xl border-2 text-[9px] md:text-[10px] font-black uppercase transition-all ${formState.format === f ? 'border-indigo-600 bg-indigo-50 text-indigo-600 shadow-md' : 'border-slate-100 text-slate-400 hover:border-slate-200'}`}>{f}</button>
                         ))}
                       </div>
                     </div>
@@ -515,7 +465,7 @@ export default function App() {
                       <label className="block text-[10px] font-black text-slate-400 uppercase mb-3 tracking-widest">Urgência</label>
                       <div className="flex gap-2">
                         {['Baixa', 'Normal', 'Urgente'].map(p => (
-                          <button key={p} type="button" onClick={() => setFormState({...formState, priority: p})} disabled={isClientView && editingId} className={`flex-1 py-3 md:py-3.5 rounded-xl border-2 text-[9px] md:text-[10px] font-black uppercase transition-all ${formState.priority === p ? (p === 'Urgente' ? 'border-red-600 bg-red-50 text-red-600 shadow-md' : 'border-indigo-600 bg-indigo-50 text-indigo-600 shadow-md') : 'border-slate-100 text-slate-400 hover:border-slate-200 disabled:opacity-50'}`}>{p}</button>
+                          <button key={p} type="button" onClick={() => setFormState({...formState, priority: p})} className={`flex-1 py-3 md:py-3.5 rounded-xl border-2 text-[9px] md:text-[10px] font-black uppercase transition-all ${formState.priority === p ? (p === 'Urgente' ? 'border-red-600 bg-red-50 text-red-600 shadow-md' : 'border-indigo-600 bg-indigo-50 text-indigo-600 shadow-md') : 'border-slate-100 text-slate-400 hover:border-slate-200'}`}>{p}</button>
                         ))}
                       </div>
                     </div>
@@ -523,26 +473,26 @@ export default function App() {
                   <div className="space-y-6 md:space-y-8">
                     <div>
                       <label className="block text-[10px] font-black text-slate-400 uppercase mb-3 tracking-widest flex items-center gap-2"><LinkIcon size={14} className="text-indigo-500" /> Link do Drive / Apoio</label>
-                      <input type="url" placeholder="Ex: google.com/drive/..." className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-bold outline-none focus:ring-4 focus:ring-indigo-50 focus:border-indigo-500 transition-all text-indigo-600" value={formState.referenceUrl} onChange={(e) => setFormState({...formState, referenceUrl: e.target.value})} disabled={isClientView && editingId} />
+                      <input type="url" placeholder="Ex: google.com/drive/..." className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-bold outline-none focus:ring-4 focus:ring-indigo-50 focus:border-indigo-500 transition-all text-indigo-600" value={formState.referenceUrl} onChange={(e) => setFormState({...formState, referenceUrl: e.target.value})} />
                     </div>
                     <div>
                       <label className="block text-[10px] font-black text-slate-400 uppercase mb-3 tracking-widest">Prazo Desejado</label>
-                      <input type="date" className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-black outline-none focus:border-indigo-500 cursor-pointer shadow-inner text-slate-600" value={formState.deadline} onChange={(e) => setFormState({...formState, deadline: e.target.value})} disabled={isClientView && editingId} />
+                      <input type="date" className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-black outline-none focus:border-indigo-500 cursor-pointer shadow-inner text-slate-600" value={formState.deadline} onChange={(e) => setFormState({...formState, deadline: e.target.value})} />
                     </div>
                     <div>
                       <label className="block text-[10px] font-black text-slate-400 uppercase mb-3 tracking-widest">Instruções Adicionais</label>
-                      <textarea required rows={4} placeholder="Cores, textos, objetivo..." className="w-full p-5 bg-slate-50 border border-slate-200 rounded-[1.5rem] md:rounded-[2rem] text-sm font-medium outline-none focus:ring-4 focus:ring-indigo-50 focus:border-indigo-500 transition-all resize-none leading-relaxed shadow-inner" value={formState.description} onChange={(e) => setFormState({...formState, description: e.target.value})} disabled={isClientView && editingId}></textarea>
+                      <textarea required rows={4} placeholder="Cores, textos, objetivo..." className="w-full p-5 bg-slate-50 border border-slate-200 rounded-[1.5rem] md:rounded-[2rem] text-sm font-medium outline-none focus:ring-4 focus:ring-indigo-50 focus:border-indigo-500 transition-all resize-none leading-relaxed shadow-inner" value={formState.description} onChange={(e) => setFormState({...formState, description: e.target.value})}></textarea>
                     </div>
                   </div>
                 </div>
 
-                {/* AREA EXCLUSIVA DA AGÊNCIA: ENTREGA DO LINK */}
-                {!isClientView && editingId && (
+                {/* AREA DE ENTREGA DO LINK (Sempre visível ao editar) */}
+                {editingId && (
                   <div className="mt-8 pt-8 border-t border-slate-100">
                      <div className="bg-emerald-50/50 p-6 rounded-[2rem] border border-emerald-100">
                       <label className="block text-[10px] font-black text-emerald-600 uppercase mb-3 tracking-widest flex items-center gap-2"><FileCheck size={14} /> Link da Arte Final (Entrega)</label>
                       <input type="url" placeholder="Ex: google.com/drive/arte-final..." className="w-full p-4 bg-white border border-emerald-200 rounded-2xl text-xs font-bold outline-none focus:ring-4 focus:ring-emerald-50 focus:border-emerald-500 transition-all text-emerald-700 shadow-sm" value={formState.deliveryUrl || ''} onChange={(e) => setFormState({...formState, deliveryUrl: e.target.value})} />
-                      <p className="text-[10px] text-emerald-600 font-bold mt-3 ml-2">Coloque aqui o link do arquivo pronto. O cliente verá botões de "Aprovar" e "Pedir Alteração" no portal dele.</p>
+                      <p className="text-[10px] text-emerald-600 font-bold mt-3 ml-2">Coloque aqui o link do arquivo pronto para aparecer os botões de Aprovação.</p>
                     </div>
                   </div>
                 )}
