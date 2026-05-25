@@ -47,8 +47,8 @@ const CLIENT_SOLID_COLORS = {
   'geral': '#4f46e5',
   'c1': '#1e293b',
   'c2': '#1d4ed8',
-  'c3': '#94a3b8',
-  'c4': '#10b981',
+  'c3': '#475569',
+  'c4': '#059669',
   'c5': '#dc2626',
 };
 
@@ -282,7 +282,7 @@ export default function App() {
             </div>
           ) : (
             filteredRequests.map(request => (
-              <div key={request.id} className="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm hover:shadow-xl transition-all relative flex flex-col group h-[480px]">
+              <div key={request.id} className="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm hover:shadow-xl transition-all relative flex flex-col group h-[480px] overflow-hidden">
                 
                 {/* Faixa Lateral do Cliente */}
                 <div className="absolute left-0 top-6 bottom-6 w-1.5 rounded-r-md" style={{ backgroundColor: CLIENT_SOLID_COLORS[request.clientId] || '#4f46e5' }} />
