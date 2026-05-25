@@ -282,12 +282,10 @@ export default function App() {
             </div>
           ) : (
             filteredRequests.map(request => (
-              <div key={request.id} className="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm hover:shadow-xl transition-all relative flex flex-col group min-h-[400px]">
+              <div key={request.id} className="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm hover:shadow-xl transition-all relative flex flex-col group h-[480px]">
                 
-                {/* Faixa Lateral de Prioridade */}
-                <div className={`absolute left-0 top-6 bottom-6 w-1.5 rounded-r-md ${
-                  request.priority === 'Urgente' ? 'bg-red-500' : request.priority === 'Normal' ? 'bg-indigo-500' : 'bg-slate-300'
-                }`} />
+                {/* Faixa Lateral do Cliente */}
+                <div className="absolute left-0 top-6 bottom-6 w-1.5 rounded-r-md" style={{ backgroundColor: CLIENT_SOLID_COLORS[request.clientId] || '#4f46e5' }} />
 
                 {/* CABEÇALHO DO CARD */}
                 <div className="p-6 pb-5 border-b border-slate-50 shrink-0">
@@ -319,9 +317,9 @@ export default function App() {
                 </div>
 
                 {/* DESCRIÇÃO COM SCROLL */}
-                <div className="p-6 pl-10 flex-1 overflow-y-auto scrollbar-hide flex flex-col">
+                <div className="p-6 pl-10 flex-1 overflow-hidden flex flex-col">
                   {activeClientId === 'geral' && (() => { const c = INITIAL_CLIENTS.find(c => c.id === request.clientId); return c ? <p className="text-[9px] font-black uppercase mb-3 flex items-center gap-1.5" style={{ color: CLIENT_SOLID_COLORS[c.id] }}><span className="w-2 h-2 rounded-full inline-block shrink-0" style={{ backgroundColor: CLIENT_SOLID_COLORS[c.id] }} />{c.name}</p> : null; })()}
-                  <p className="text-slate-600 text-sm leading-relaxed whitespace-pre-wrap font-medium">{request.description}</p>
+                  <p className="text-slate-600 text-sm leading-relaxed whitespace-pre-wrap font-medium line-clamp-4 overflow-hidden">{request.description}</p>
                 </div>
 
                 {/* ÁREA DE ENTREGA (Se houver link da arte) */}
@@ -350,7 +348,7 @@ export default function App() {
                           className="text-[9px] font-black uppercase px-3 py-1.5 bg-white border border-emerald-200 text-emerald-600 rounded-xl hover:bg-emerald-600 hover:text-white transition-colors shadow-sm"
                         >Copiar</button>
                       </div>
-                      <p className="text-slate-600 text-xs leading-relaxed whitespace-pre-wrap line-clamp-3">{request.deliveryCaption}</p>
+                      <p className="text-slate-600 text-xs leading-relaxed whitespace-pre-wrap line-clamp-2">{request.deliveryCaption}</p>
                     </div>
                   </div>
                 )}
