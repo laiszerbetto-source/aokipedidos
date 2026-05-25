@@ -311,7 +311,7 @@ export default function App() {
                     
                     <div className="flex flex-wrap items-center gap-2 text-[9px] font-bold text-slate-400 uppercase tracking-widest">
                        <span className="flex items-center gap-1 bg-slate-50 border border-slate-100 px-2 py-1 rounded-md shrink-0"><LayoutGrid size={10} /> {request.format}</span>
-                       <span className={`flex items-center gap-1 px-2 py-1 rounded-md shrink-0 border ${request.requestType === 'publicacao' ? 'bg-indigo-50 border-indigo-100 text-indigo-500' : 'bg-slate-50 border-slate-100 text-slate-400'}`}>{request.requestType === 'publicacao' ? <><FileText size={10} /> Publicação</> : <><FileCheck size={10} /> Arte</>}</span>
+                       <span className={`flex items-center gap-1 px-2 py-1 rounded-md shrink-0 border ${request.requestType === 'publicacao' ? 'bg-indigo-50 border-indigo-100 text-indigo-500' : request.requestType === 'agendado' ? 'bg-emerald-50 border-emerald-100 text-emerald-600' : 'bg-slate-50 border-slate-100 text-slate-400'}`}>{request.requestType === 'publicacao' ? <><FileText size={10} /> Publicação</> : request.requestType === 'agendado' ? <><CheckCircle2 size={10} /> Já Agendado</> : <><FileCheck size={10} /> Arte</>}</span>
                        <span className="flex items-center gap-1 bg-slate-50 border border-slate-100 px-2 py-1 rounded-md shrink-0"><Calendar size={10} /> Prazo: {request.deadline ? request.deadline.split('-').reverse().join('/') : 'A combinar'}</span>
                        {request.priority === 'Urgente' && <span className="text-red-500 bg-red-50 px-2 py-1 rounded-md border border-red-100 flex items-center gap-1 shrink-0"><AlertCircle size={10} /> Urgente</span>}
                     </div>
@@ -338,8 +338,8 @@ export default function App() {
                   </div>
                 )}
 
-                {/* ENTREGA DE LEGENDA (Publicação) */}
-                {request.requestType === 'publicacao' && request.deliveryCaption && (
+                {/* ENTREGA DE LEGENDA (Publicação ou Agendado) */}
+                {(request.requestType === 'publicacao' || request.requestType === 'agendado') && request.deliveryCaption && (
                   <div className="px-6 pl-10 pb-4 shrink-0">
                     <div className="bg-emerald-50 border border-emerald-100 p-4 rounded-2xl">
                       <div className="flex items-center justify-between mb-2">
@@ -379,7 +379,20 @@ export default function App() {
                   </div>
                   
                   <div className="grid grid-cols-2 gap-2 w-full">
-                    {request.status === 'Concluído' ? (
+                    {request.requestType === 'agendado' ? (
+                      // FLUXO SIMPLES: só Agendado e Concluído
+                      request.status === 'Concluído' ? (
+                        <>
+                          <button onClick={() => updateStatus(request.id, 'Pendente')} className="w-full bg-white text-slate-600 py-3 rounded-xl text-[9px] md:text-[10px] font-black border border-slate-200 hover:bg-slate-50 transition-colors uppercase tracking-widest">Reabrir</button>
+                          <button disabled className="w-full bg-emerald-50 text-emerald-400 border border-emerald-100 py-3 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest cursor-not-allowed">Publicado</button>
+                        </>
+                      ) : (
+                        <>
+                          <button onClick={() => { setEditingId(request.id); setFormState({...request}); setIsModalOpen(true); }} className="w-full bg-white text-slate-600 py-3 rounded-xl text-[9px] md:text-[10px] font-black border border-slate-200 hover:bg-slate-50 transition-colors uppercase tracking-widest">Editar</button>
+                          <button onClick={() => updateStatus(request.id, 'Concluído')} className="w-full bg-emerald-500 text-white py-3 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest shadow-lg hover:bg-emerald-600 transition-all">✓ Publicado</button>
+                        </>
+                      )
+                    ) : request.status === 'Concluído' ? (
                       <>
                         <button onClick={() => updateStatus(request.id, 'Em Produção')} className="w-full bg-white text-slate-600 py-3 rounded-xl text-[9px] md:text-[10px] font-black border border-slate-200 hover:bg-slate-50 transition-colors uppercase tracking-widest">
                           Reabrir
@@ -487,6 +500,9 @@ export default function App() {
                 <button type="button" onClick={() => setFormState({...formState, requestType: 'publicacao'})} className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl text-[10px] font-black uppercase border-2 transition-all ${formState.requestType === 'publicacao' ? 'border-indigo-600 bg-indigo-50 text-indigo-600 shadow-md' : 'border-slate-100 text-slate-400 hover:border-slate-200'}`}>
                   <FileText size={14} /> Agendamento
                 </button>
+                <button type="button" onClick={() => setFormState({...formState, requestType: 'agendado'})} className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl text-[10px] font-black uppercase border-2 transition-all ${formState.requestType === 'agendado' ? 'border-emerald-600 bg-emerald-50 text-emerald-600 shadow-md' : 'border-slate-100 text-slate-400 hover:border-slate-200'}`}>
+                  <CheckCircle2 size={14} /> Já Agendado
+                </button>
               </div>
 
               {/* ÁREA DE SCROLL (Apenas os campos rolam) */}
@@ -548,14 +564,20 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* AREA DE ENTREGA (Sempre visível ao editar) */}
-                {editingId && (
+                {/* AREA DE ENTREGA (Sempre visível ao editar, ou ao criar tipo agendado) */}
+                {(editingId || formState.requestType === 'agendado') && (
                   <div className="mt-8 pt-8 border-t border-slate-100">
                     {formState.requestType === 'publicacao' ? (
                       <div className="bg-emerald-50/50 p-6 rounded-[2rem] border border-emerald-100">
                         <label className="block text-[10px] font-black text-emerald-600 uppercase mb-3 tracking-widest flex items-center gap-2"><FileText size={14} /> Legenda da Publicação (Entrega)</label>
                         <textarea rows={5} placeholder="Cole aqui a legenda + hashtags da publicação..." className="w-full p-4 bg-white border border-emerald-200 rounded-2xl text-sm font-medium outline-none focus:ring-4 focus:ring-emerald-50 focus:border-emerald-500 transition-all resize-none leading-relaxed text-slate-700 shadow-sm" value={formState.deliveryCaption || ''} onChange={(e) => setFormState({...formState, deliveryCaption: e.target.value})} />
                         <p className="text-[10px] text-emerald-600 font-bold mt-3 ml-2">Cole a legenda pronta para aparecer o botão de copiar para o cliente.</p>
+                      </div>
+                    ) : formState.requestType === 'agendado' ? (
+                      <div className="bg-emerald-50/50 p-6 rounded-[2rem] border border-emerald-100">
+                        <label className="block text-[10px] font-black text-emerald-600 uppercase mb-3 tracking-widest flex items-center gap-2"><CheckCircle2 size={14} /> Legenda Agendada</label>
+                        <textarea rows={5} placeholder="Cole aqui a legenda já agendada..." className="w-full p-4 bg-white border border-emerald-200 rounded-2xl text-sm font-medium outline-none focus:ring-4 focus:ring-emerald-50 focus:border-emerald-500 transition-all resize-none leading-relaxed text-slate-700 shadow-sm" value={formState.deliveryCaption || ''} onChange={(e) => setFormState({...formState, deliveryCaption: e.target.value})} />
+                        <p className="text-[10px] text-emerald-600 font-bold mt-3 ml-2">Publicação já agendada — só marcar como Publicado quando sair.</p>
                       </div>
                     ) : (
                       <div className="bg-emerald-50/50 p-6 rounded-[2rem] border border-emerald-100">
