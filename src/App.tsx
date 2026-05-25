@@ -317,15 +317,13 @@ export default function App() {
                 </div>
 
                 {/* DESCRIÇÃO COM SCROLL */}
-                <div className="p-6 pl-10 flex-1 overflow-hidden flex flex-col">
-                  {activeClientId === 'geral' && (() => { const c = INITIAL_CLIENTS.find(c => c.id === request.clientId); return c ? <p className="text-[9px] font-black uppercase mb-3 flex items-center gap-1.5" style={{ color: CLIENT_SOLID_COLORS[c.id] }}><span className="w-2 h-2 rounded-full inline-block shrink-0" style={{ backgroundColor: CLIENT_SOLID_COLORS[c.id] }} />{c.name}</p> : null; })()}
-                  <p className="text-slate-600 text-sm leading-relaxed whitespace-pre-wrap font-medium line-clamp-4 overflow-hidden">{request.description}</p>
-                </div>
+                <div className="flex-1 overflow-y-auto pl-10 pr-6 py-4 flex flex-col gap-4 scrollbar-hide">
+                  {activeClientId === 'geral' && (() => { const c = INITIAL_CLIENTS.find(c => c.id === request.clientId); return c ? <p className="text-[9px] font-black uppercase flex items-center gap-1.5" style={{ color: CLIENT_SOLID_COLORS[c.id] }}><span className="w-2 h-2 rounded-full inline-block shrink-0" style={{ backgroundColor: CLIENT_SOLID_COLORS[c.id] }} />{c.name}</p> : null; })()}
+                  <p className="text-slate-600 text-sm leading-relaxed whitespace-pre-wrap font-medium">{request.description}</p>
 
-                {/* ÁREA DE ENTREGA (Se houver link da arte) */}
-                {request.deliveryUrl && request.requestType !== 'publicacao' && (
-                  <div className="px-6 pl-10 pb-4 shrink-0">
-                    <div className="bg-emerald-50 border border-emerald-100 p-3 rounded-2xl flex items-center justify-between gap-2">
+                  {/* ÁREA DE ENTREGA (Se houver link da arte) */}
+                  {request.deliveryUrl && request.requestType !== 'publicacao' && (
+                    <div className="bg-emerald-50 border border-emerald-100 p-3 rounded-2xl flex items-center justify-between gap-2 shrink-0">
                       <div className="flex items-center gap-2 text-emerald-700 text-[10px] font-black uppercase tracking-widest">
                         <FileCheck size={14} /> Arte Entregue
                       </div>
@@ -333,13 +331,11 @@ export default function App() {
                         Acessar Link
                       </a>
                     </div>
-                  </div>
-                )}
+                  )}
 
-                {/* ENTREGA DE LEGENDA (Publicação ou Agendado) */}
-                {(request.requestType === 'publicacao' || request.requestType === 'agendado') && request.deliveryCaption && (
-                  <div className="px-6 pl-10 pb-4 shrink-0">
-                    <div className="bg-emerald-50 border border-emerald-100 p-4 rounded-2xl">
+                  {/* ENTREGA DE LEGENDA (Publicação ou Agendado) */}
+                  {(request.requestType === 'publicacao' || request.requestType === 'agendado') && request.deliveryCaption && (
+                    <div className="bg-emerald-50 border border-emerald-100 p-4 rounded-2xl shrink-0">
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-[10px] font-black text-emerald-700 uppercase tracking-widest flex items-center gap-1.5"><FileText size={12} /> Legenda Pronta</span>
                         <button
@@ -348,13 +344,13 @@ export default function App() {
                           className="text-[9px] font-black uppercase px-3 py-1.5 bg-white border border-emerald-200 text-emerald-600 rounded-xl hover:bg-emerald-600 hover:text-white transition-colors shadow-sm"
                         >Copiar</button>
                       </div>
-                      <p className="text-slate-600 text-xs leading-relaxed whitespace-pre-wrap line-clamp-2">{request.deliveryCaption}</p>
+                      <p className="text-slate-600 text-xs leading-relaxed whitespace-pre-wrap line-clamp-3">{request.deliveryCaption}</p>
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
 
-                {/* RODAPÉ DO CARD */}
-                <div className="p-6 pl-10 pt-0 mt-auto shrink-0 flex flex-col gap-3">
+                {/* RODAPÉ FIXO DO CARD */}
+                <div className="p-4 pl-10 shrink-0 flex flex-col gap-2 border-t border-slate-50">
                   <div className="flex items-center justify-between bg-slate-50 p-1.5 rounded-2xl border border-slate-100">
                     <div className="flex gap-1">
                       {request.referenceUrl ? (
@@ -378,7 +374,6 @@ export default function App() {
                   
                   <div className="grid grid-cols-2 gap-2 w-full">
                     {request.requestType === 'agendado' ? (
-                      // FLUXO SIMPLES: só Agendado e Concluído
                       request.status === 'Concluído' ? (
                         <>
                           <button onClick={() => updateStatus(request.id, 'Pendente')} className="w-full bg-white text-slate-600 py-3 rounded-xl text-[9px] md:text-[10px] font-black border border-slate-200 hover:bg-slate-50 transition-colors uppercase tracking-widest">Reabrir</button>
