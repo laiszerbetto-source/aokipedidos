@@ -22,7 +22,10 @@ import {
   AlertCircle,
   MessageSquare,
   SendHorizonal,
-  FileCheck
+  FileCheck,
+  Copy,
+  Instagram,
+  FileText
 } from 'lucide-react';
 
 // --- CONFIGURAÇÃO DO FIREBASE ---
@@ -40,6 +43,15 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 // --- CLIENTES DA AGÊNCIA ---
+const CLIENT_SOLID_COLORS = {
+  'geral': '#4f46e5',
+  'c1': '#1e293b',
+  'c2': '#1d4ed8',
+  'c3': '#94a3b8',
+  'c4': '#10b981',
+  'c5': '#dc2626',
+};
+
 const INITIAL_CLIENTS = [
   { id: 'geral', name: 'Visão Geral (Agência)', color: 'from-indigo-600 to-purple-700' },
   { id: 'c1', name: 'Grupo Aoki', color: 'from-slate-700 to-black' },
@@ -69,7 +81,10 @@ export default function App() {
     priority: 'Normal',
     deadline: '',
     referenceUrl: '',
-    deliveryUrl: '' 
+    deliveryUrl: '',
+    requestType: 'arte',
+    deliveryCaption: '',
+    clientId: ''
   });
 
   const currentClient = INITIAL_CLIENTS.find(c => c.id === activeClientId) || INITIAL_CLIENTS[0];
@@ -130,7 +145,7 @@ export default function App() {
 
       await setDoc(requestRef, {
         ...formState,
-        clientId: activeClientId === 'geral' ? 'c1' : activeClientId,
+        clientId: formState.clientId || (activeClientId === 'geral' ? 'c1' : activeClientId),
         status: editingId ? (existing?.status || 'Pendente') : 'Pendente',
         createdAt: editingId ? (existing?.createdAt || new Date().toISOString()) : new Date().toISOString(),
       }, { merge: true });
@@ -152,7 +167,7 @@ export default function App() {
 
       setIsModalOpen(false);
       setEditingId(null);
-      setFormState({ title: '', description: '', format: 'Social Media', priority: 'Normal', deadline: '', referenceUrl: '', deliveryUrl: '' });
+      setFormState({ title: '', description: '', format: 'Social Media', priority: 'Normal', deadline: '', referenceUrl: '', deliveryUrl: '', requestType: 'arte', deliveryCaption: '', clientId: '' });
     } catch (err) {
       console.error(err);
     }
@@ -296,6 +311,7 @@ export default function App() {
                     
                     <div className="flex flex-wrap items-center gap-2 text-[9px] font-bold text-slate-400 uppercase tracking-widest">
                        <span className="flex items-center gap-1 bg-slate-50 border border-slate-100 px-2 py-1 rounded-md shrink-0"><LayoutGrid size={10} /> {request.format}</span>
+                       <span className={`flex items-center gap-1 px-2 py-1 rounded-md shrink-0 border ${request.requestType === 'publicacao' ? 'bg-indigo-50 border-indigo-100 text-indigo-500' : 'bg-slate-50 border-slate-100 text-slate-400'}`}>{request.requestType === 'publicacao' ? <><FileText size={10} /> Publicação</> : <><FileCheck size={10} /> Arte</>}</span>
                        <span className="flex items-center gap-1 bg-slate-50 border border-slate-100 px-2 py-1 rounded-md shrink-0"><Calendar size={10} /> Prazo: {request.deadline ? request.deadline.split('-').reverse().join('/') : 'A combinar'}</span>
                        {request.priority === 'Urgente' && <span className="text-red-500 bg-red-50 px-2 py-1 rounded-md border border-red-100 flex items-center gap-1 shrink-0"><AlertCircle size={10} /> Urgente</span>}
                     </div>
@@ -304,12 +320,12 @@ export default function App() {
 
                 {/* DESCRIÇÃO COM SCROLL */}
                 <div className="p-6 pl-10 flex-1 overflow-y-auto scrollbar-hide flex flex-col">
-                  {activeClientId === 'geral' && <span className="text-indigo-500 uppercase tracking-widest bg-indigo-50 w-fit px-2 py-0.5 rounded border border-indigo-100 mb-3 block text-[8px] font-black">{INITIAL_CLIENTS.find(c => c.id === request.clientId)?.name}</span>}
+                  {activeClientId === 'geral' && (() => { const c = INITIAL_CLIENTS.find(c => c.id === request.clientId); return c ? <p className="text-[9px] font-black uppercase mb-3 flex items-center gap-1.5" style={{ color: CLIENT_SOLID_COLORS[c.id] }}><span className="w-2 h-2 rounded-full inline-block shrink-0" style={{ backgroundColor: CLIENT_SOLID_COLORS[c.id] }} />{c.name}</p> : null; })()}
                   <p className="text-slate-600 text-sm leading-relaxed whitespace-pre-wrap font-medium">{request.description}</p>
                 </div>
 
                 {/* ÁREA DE ENTREGA (Se houver link da arte) */}
-                {request.deliveryUrl && (
+                {request.deliveryUrl && request.requestType !== 'publicacao' && (
                   <div className="px-6 pl-10 pb-4 shrink-0">
                     <div className="bg-emerald-50 border border-emerald-100 p-3 rounded-2xl flex items-center justify-between gap-2">
                       <div className="flex items-center gap-2 text-emerald-700 text-[10px] font-black uppercase tracking-widest">
@@ -318,6 +334,23 @@ export default function App() {
                       <a href={request.deliveryUrl.startsWith('http') ? request.deliveryUrl : `https://${request.deliveryUrl}`} target="_blank" rel="noopener noreferrer" className="bg-white text-emerald-600 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase shadow-sm border border-emerald-100 hover:bg-emerald-600 hover:text-white transition-colors">
                         Acessar Link
                       </a>
+                    </div>
+                  </div>
+                )}
+
+                {/* ENTREGA DE LEGENDA (Publicação) */}
+                {request.requestType === 'publicacao' && request.deliveryCaption && (
+                  <div className="px-6 pl-10 pb-4 shrink-0">
+                    <div className="bg-emerald-50 border border-emerald-100 p-4 rounded-2xl">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[10px] font-black text-emerald-700 uppercase tracking-widest flex items-center gap-1.5"><FileText size={12} /> Legenda Pronta</span>
+                        <button
+                          onClick={() => { navigator.clipboard.writeText(request.deliveryCaption); const el = document.getElementById(`cap-${request.id}`); if(el){ el.textContent = '✓ Copiado!'; setTimeout(() => el.textContent = 'Copiar', 1500); } }}
+                          id={`cap-${request.id}`}
+                          className="text-[9px] font-black uppercase px-3 py-1.5 bg-white border border-emerald-200 text-emerald-600 rounded-xl hover:bg-emerald-600 hover:text-white transition-colors shadow-sm"
+                        >Copiar</button>
+                      </div>
+                      <p className="text-slate-600 text-xs leading-relaxed whitespace-pre-wrap line-clamp-3">{request.deliveryCaption}</p>
                     </div>
                   </div>
                 )}
@@ -355,7 +388,7 @@ export default function App() {
                           Entregue
                         </button>
                       </>
-                    ) : request.deliveryUrl && request.status !== 'Alteração' ? (
+                    ) : (request.requestType === 'publicacao' ? request.deliveryCaption : request.deliveryUrl) && request.status !== 'Alteração' ? (
                       <>
                         <button onClick={() => updateStatus(request.id, 'Alteração')} className="w-full bg-white text-purple-600 border border-purple-200 py-3 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest hover:bg-purple-50 transition-all">
                           Pedir Alteração
@@ -370,7 +403,7 @@ export default function App() {
                           {request.status === 'Pendente' ? 'Iniciar' : 'Pausar'}
                         </button>
                         <button onClick={() => { setEditingId(request.id); setFormState({...request}); setIsModalOpen(true); }} className="w-full bg-indigo-600 text-white py-3 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all shadow-lg hover:bg-indigo-700">
-                          Entregar Arte
+                          {request.requestType === 'publicacao' ? 'Entregar Legenda' : 'Entregar Arte'}
                         </button>
                       </>
                     )}
@@ -384,7 +417,7 @@ export default function App() {
 
       {/* FAB: BOTÃO FLUTUANTE DE NOVO PEDIDO */}
       <button 
-        onClick={() => { setEditingId(null); setFormState({ title: '', description: '', format: 'Social Media', priority: 'Normal', deadline: '', referenceUrl: '', deliveryUrl: '' }); setIsModalOpen(true); }}
+        onClick={() => { setEditingId(null); setFormState({ title: '', description: '', format: 'Social Media', priority: 'Normal', deadline: '', referenceUrl: '', deliveryUrl: '', requestType: 'arte', deliveryCaption: '', clientId: activeClientId === 'geral' ? 'c1' : activeClientId }); setIsModalOpen(true); }}
         className="fixed bottom-6 right-6 md:bottom-10 md:right-10 bg-indigo-600 text-white h-14 w-14 md:h-auto md:w-auto md:px-8 md:py-4 rounded-full font-black shadow-[0_10px_40px_-10px_rgba(79,70,229,0.8)] hover:bg-indigo-700 hover:-translate-y-1 transition-all z-40 flex items-center justify-center gap-3 group"
       >
         <Plus size={24} className="group-hover:rotate-90 transition-transform duration-300" /> 
@@ -437,7 +470,7 @@ export default function App() {
             {/* CABEÇALHO FIXO */}
             <div className="p-6 md:p-8 border-b border-slate-50 flex justify-between items-center bg-white shrink-0 z-10">
               <div>
-                <h2 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight uppercase">{editingId ? 'Gerir Solicitação' : 'Novo Pedido de Arte'}</h2>
+                <h2 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight uppercase">{editingId ? 'Gerir Solicitação' : 'Novo Pedido'}</h2>
                 <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] mt-1.5">Para: <span className="text-indigo-600">{currentClient?.name}</span></p>
               </div>
               <button type="button" onClick={() => setIsModalOpen(false)} className="p-2 md:p-3 bg-slate-100 rounded-2xl text-slate-400 hover:text-slate-900 transition-all hover:rotate-90"><X size={20} className="md:w-6 md:h-6" /></button>
@@ -446,13 +479,41 @@ export default function App() {
             {/* CORPO DO MODAL E BOTÕES */}
             <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden">
               
+              {/* SELETOR DE TIPO */}
+              <div className="flex gap-3 mb-2">
+                <button type="button" onClick={() => setFormState({...formState, requestType: 'arte'})} className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl text-[10px] font-black uppercase border-2 transition-all ${formState.requestType === 'arte' ? 'border-indigo-600 bg-indigo-50 text-indigo-600 shadow-md' : 'border-slate-100 text-slate-400 hover:border-slate-200'}`}>
+                  <FileCheck size={14} /> Pedido de Arte
+                </button>
+                <button type="button" onClick={() => setFormState({...formState, requestType: 'publicacao'})} className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl text-[10px] font-black uppercase border-2 transition-all ${formState.requestType === 'publicacao' ? 'border-indigo-600 bg-indigo-50 text-indigo-600 shadow-md' : 'border-slate-100 text-slate-400 hover:border-slate-200'}`}>
+                  <FileText size={14} /> Agendamento
+                </button>
+              </div>
+
               {/* ÁREA DE SCROLL (Apenas os campos rolam) */}
               <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-8 md:space-y-10">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-10">
                   <div className="space-y-6 md:space-y-8">
                     <div>
+                      <label className="block text-[10px] font-black text-slate-400 uppercase mb-3 tracking-widest">Marca</label>
+                      <div className="flex flex-wrap gap-2">
+                        {INITIAL_CLIENTS.filter(c => c.id !== 'geral').map(c => (
+                          <button
+                            key={c.id}
+                            type="button"
+                            onClick={() => setFormState({...formState, clientId: c.id})}
+                            className={`flex items-center gap-2 px-3 py-2 rounded-xl text-[10px] font-black uppercase border transition-all ${formState.clientId === c.id ? 'border-transparent text-white shadow-md' : 'bg-white border-slate-200 text-slate-500 hover:border-slate-300'}`}
+                            style={formState.clientId === c.id ? { backgroundColor: CLIENT_SOLID_COLORS[c.id] } : {}}
+                          >
+                            <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: CLIENT_SOLID_COLORS[c.id] }} />
+                            {c.name}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
                       <label className="block text-[10px] font-black text-slate-400 uppercase mb-3 tracking-widest">Nome do Pedido</label>
                       <input type="text" required placeholder="Ex: Banner Site Liquidação" className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold outline-none focus:ring-4 focus:ring-indigo-50 focus:border-indigo-500 transition-all shadow-inner" value={formState.title} onChange={(e) => setFormState({...formState, title: e.target.value})} />
+                    </div>
                     </div>
                     <div>
                       <label className="block text-[10px] font-black text-slate-400 uppercase mb-3 tracking-widest">Tipo</label>
@@ -488,14 +549,22 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* AREA DE ENTREGA DO LINK (Sempre visível ao editar) */}
+                {/* AREA DE ENTREGA (Sempre visível ao editar) */}
                 {editingId && (
                   <div className="mt-8 pt-8 border-t border-slate-100">
-                     <div className="bg-emerald-50/50 p-6 rounded-[2rem] border border-emerald-100">
-                      <label className="block text-[10px] font-black text-emerald-600 uppercase mb-3 tracking-widest flex items-center gap-2"><FileCheck size={14} /> Link da Arte Final (Entrega)</label>
-                      <input type="url" placeholder="Ex: google.com/drive/arte-final..." className="w-full p-4 bg-white border border-emerald-200 rounded-2xl text-xs font-bold outline-none focus:ring-4 focus:ring-emerald-50 focus:border-emerald-500 transition-all text-emerald-700 shadow-sm" value={formState.deliveryUrl || ''} onChange={(e) => setFormState({...formState, deliveryUrl: e.target.value})} />
-                      <p className="text-[10px] text-emerald-600 font-bold mt-3 ml-2">Coloque aqui o link do arquivo pronto para aparecer os botões de Aprovação.</p>
-                    </div>
+                    {formState.requestType === 'publicacao' ? (
+                      <div className="bg-emerald-50/50 p-6 rounded-[2rem] border border-emerald-100">
+                        <label className="block text-[10px] font-black text-emerald-600 uppercase mb-3 tracking-widest flex items-center gap-2"><FileText size={14} /> Legenda da Publicação (Entrega)</label>
+                        <textarea rows={5} placeholder="Cole aqui a legenda + hashtags da publicação..." className="w-full p-4 bg-white border border-emerald-200 rounded-2xl text-sm font-medium outline-none focus:ring-4 focus:ring-emerald-50 focus:border-emerald-500 transition-all resize-none leading-relaxed text-slate-700 shadow-sm" value={formState.deliveryCaption || ''} onChange={(e) => setFormState({...formState, deliveryCaption: e.target.value})} />
+                        <p className="text-[10px] text-emerald-600 font-bold mt-3 ml-2">Cole a legenda pronta para aparecer o botão de copiar para o cliente.</p>
+                      </div>
+                    ) : (
+                      <div className="bg-emerald-50/50 p-6 rounded-[2rem] border border-emerald-100">
+                        <label className="block text-[10px] font-black text-emerald-600 uppercase mb-3 tracking-widest flex items-center gap-2"><FileCheck size={14} /> Link da Arte Final (Entrega)</label>
+                        <input type="url" placeholder="Ex: google.com/drive/arte-final..." className="w-full p-4 bg-white border border-emerald-200 rounded-2xl text-xs font-bold outline-none focus:ring-4 focus:ring-emerald-50 focus:border-emerald-500 transition-all text-emerald-700 shadow-sm" value={formState.deliveryUrl || ''} onChange={(e) => setFormState({...formState, deliveryUrl: e.target.value})} />
+                        <p className="text-[10px] text-emerald-600 font-bold mt-3 ml-2">Coloque aqui o link do arquivo pronto para aparecer os botões de Aprovação.</p>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
